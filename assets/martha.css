@@ -26,148 +26,265 @@
  * @subpackage Assets
  */
 
-body {
-	background-color: #222;
-	background-image: url("pinstriped_suit.png"); /* Background by subtlepatterns.com */
-	color: #eee;
-	font-family:"Open Sans", "Trebuchet MS", Arial, sans-serif;
+html,body {
+	height: 100%;
 }
 
-a {
+body {
+	position: relative;
+	background-color: #fff;
+	color: #333;
+	font-family:"Open Sans", "Trebuchet MS", Arial, sans-serif;
+	font-size: 12px;
+	margin: auto;
+	padding: 0 20px;
+	word-wrap: break-word;
+	max-width: 480px;
+}
+
+a, a:visited {
 	text-decoration: none;
-	color: #0074ae;
+	color: #1aa4d8;
+	font-weight: bold;
+}
+
+a:hover {
+	color:#0074ae;
 }
 
 a:active {
 	color: #f47825;
 }
 
-#logo {
-	display: block;
-	width: 50px;
-	height: 50px;
-	margin: 10px auto;
-}
-
-.hal {
-	background-color: #ddd;
-	color: #333;
-	border: 4px solid #ccc;
-	border-radius: 10px;
-	padding: 10px;
-	padding-bottom: 60px;
-	position: relative;
-	margin: auto;
-	width: 90%;
-	max-width: 300px;
-	min-height: 200px;
-}
-
-.query {
-	font-style: italic;
-	font-size: 18px;
-	font-weight: bold;
-	color: #111;
-	margin: 10px;
-	word-wrap: break-word;
-}
-
-.query:before {
-	content: open-quote;
-}
-
-.query:after {
-	content: close-quote;
+#example-martha {
+	height: 370px !important;
 }
 
 .message {
-	margin: 10px;
-	white-space: pre-wrap;
-	word-wrap: break-word;
+	font-size:14px;
 }
 
-input[type=text] {
-	display: block;
+.message.answer {
 	position: absolute;
-	left: 10px;
-	right: 10px;
-	bottom: 20px;
-	font-size: 18px;
-	border: 1px solid #222;
-}
-
-input[type=submit] {
-	background-color: transparent;
-	background-image: url("temboo-drop-orange.png");
-	width: 50px;
-	height: 50px;
-	border: none;
-	display: block;
-	margin: 10px auto;
-	cursor: pointer;
-}
-
-input[type=submit]:active, input[type=submit]:disabled {
-	background-image: url("temboo-drop-blue.png");
-	opacity: 1.0;
-	cursor: default;
-}
-
-#credits {
-	position: absolute;
+	top: -22px;
+	right: 20px;
+	max-width: 410px;
+	z-index: 1;
+	background: #fff url('martha-mini.png') -1px top no-repeat;
+	text-align: right;
 	margin: 0;
-	bottom: 2px;
+	padding: 10px 20px 10px 45px;
+}
+
+.message.answer:after {
+	content: "";
+	position: absolute;
+	top: 14px;
+	right: 0;
+	width: 13px;
+	height: 13px;
+	background: url('martha-dot-small.png') no-repeat;
+}
+
+.message img {
+	border: none;
+    max-width: 100px;
+    max-height: 100px;
+}
+
+.message a.powered-by {
+	display: block;
+	float: right;
+	vertical-align: top;
+}
+
+.powered-by img {
+	max-width: 130px;
+	margin-top:5px;
+}
+
+.message p.powered-by {
+	text-align: right;
+}
+
+#martha-answer {
+	position: relative;
+	margin-top: 25px;
+	margin-left: -20px;
+	margin-right: -20px;
+	bottom: 0;
+	padding: 0;
+	border-top: 3px solid #ccc;
+}
+
+#martha-results {
+	position: absolute;
+	bottom: 0;
 	left: 0;
 	right: 0;
-	text-align: center;
-	font-size: 12px;
+	top: 155px;
+	padding: 20px 20px 0 20px;
+	padding-top: 0;
+	overflow-y: auto;
 }
 
-#help {
-	display: block;
-	position: absolute;
+#martha-results .message:last-child p {
+	margin-bottom: 0;
+}
+
+#martha-results .message .ytlinkcontainer {
+	margin-right: 40px;
+}
+
+#martha-welcome {
+	position: relative;
+	background: url('martha-large.png') 283px 5px no-repeat;
+	min-height: 210px;
+	padding-right: 200px;
+	margin-top: 40px;
+	font-size:14px;
+	margin-left:5px;
+}
+
+.examples {
+	padding: 4px 0;
+	border: 3px solid #ccc;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    width:280px;
+}
+
+.examples p {
+	position: relative;
+	background: url('martha-dot-small.png') left 2px no-repeat;
+	padding: 1px 0 1px 18px;
 	margin: 0;
-	right: 5px;
-	top: 5px;
-	height: 20px;
-	width: 20px;
-	font-size: 20px;
-	text-align: center;
-	line-height: 20px;
-	font-weight: bold;
-	color: #ddd;
-	background-color: #555;
-	border-radius: 10px;
+	margin-left: -8px;
+	min-height: 15px;
 }
 
-#help:active {
-	color: #333;
-	background-color: #ddd;
+h1, #martha-query, .message.answer {
+		font-size: 14px;
+		font-weight: bold;
+		text-decoration: none;
 }
 
-body:after
-{
-	content: url("temboo-drop-blue.png");
+#martha-query {
+	margin-top: 20px;
+}
+
+#spinner {
+	position: absolute;
+	background: #fff url('spinner.gif') center center no-repeat;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
 	display: none;
 }
 
-@media (min--moz-device-pixel-ratio: 1.5),
-	(-o-min-device-pixel-ratio: 3/2),
-	(-webkit-min-device-pixel-ratio: 1.5),
-	(min-device-pixel-ratio: 1.5),
-	(min-resolution: 1.5dppx) {
+p.general-bucket {
+	text-align: center;
+}
+
+p.general-bucket img {
+	max-height: 160px;
+	max-width: 160px;
+}
+
+form {
+	padding-top: 20px;
+}
+
+input[type=text] {
+	z-index: 1;
+	color: #333;
+	display: block;
+	position: relative;
+	font-size: 14px;
+	border: 1px solid #999;
+    padding: 5px 10px;
+    margin: 0 auto 0 auto;
+    width: 460px;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+	-moz-box-sizing: content-box;
+	-webkit-box-sizing: content-box;
+	box-sizing: content-box;
+}
+
+input[type=text]:focus {
+	box-shadow: 0 0 16px #2bb5e9;
+	outline: 0;
+}
+
+input[type=text]:focus::-webkit-input-placeholder { color:transparent; }
+input[type=text]:focus::-moz-placeholder { color:transparent; }
+
+iframe.wikipedia {
+	background: #fff url('spinner.gif') center center no-repeat;
+	position: absolute;
+	left: 0; right: 0;
+	top: 0; bottom: 0;
+	border: none;
+	height: 100%;
+	width: 100%;
+	margin: 0;
+	padding: 0;
+}
+
+iframe.googlemaps {
+	height: 190px;
+}
+
+
+/* Smartphones (portrait and landscape) ----------- */
+@media only screen
+and (min-device-width : 320px)
+and (max-device-width : 480px) {
 	body {
-		background-image: url("pinstriped_suit_@2X.png"); /* Background by subtlepatterns.com */
-		background-size: 400px 333px;
+		max-width: 320px;
 	}
-	.hal {
-		min-height: 300px;
+	input[type=text] {
+		width: 260px;
 	}
-	input[type=submit] {
-		background-image: url("temboo-drop-orange_@2X.png");
-		background-size: 50px 50px;
+	.message.answer {
+		max-width: 200px;
 	}
-	input[type=submit]:active, input[type=submit]:disabled {
-		background-image: url("temboo-drop-blue_@2X.png");
+	#martha-welcome {
+		background: url('martha-mini.png') right top no-repeat;
+		padding-right: 50px;
 	}
+
+	#martha-results {
+		position: relative;
+		bottom: auto;
+		left: auto;
+		right: auto;
+		top: auto;
+		padding: 5px;
+		margin-top: 70px;
+		overflow-y: auto;
+	}
+
+	iframe.wikipedia {
+		position: relative;
+		bottom: auto;
+		left: auto;
+		right: auto;
+		top: auto;
+		border: none;
+		height: 150px;
+		width: 100%;
+		margin: 0;
+		padding: 0;
+	}
+
+	iframe.googlemaps {
+		height: 175px;
+}
+
 }

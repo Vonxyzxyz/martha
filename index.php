@@ -50,15 +50,14 @@ if(isset($_GET['answer'])) {
 
 
 // Process queries submitted via vanilla web form.
-$query = '';
 if(isset($_REQUEST['query'])) {
 	$query = (string) $_REQUEST['query'];
 	if(get_magic_quotes_gpc()) {
 		$query = stripslashes($query);
 	}
+	$martha->query($query);
 }
 
-$martha->query($query);
 
 // Present the web interface.
 require_once('views/index.php');

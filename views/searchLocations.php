@@ -29,9 +29,19 @@
  */
 
 ?>
-<?php echo '<?xml version="1.0" encoding="UTF-8"?>'; // thwarting short php tags ?>
-<Response>
-	<?php foreach($messages as $index => $message): ?>
-    <Sms><?php echo htmlentities($message, ENT_NOQUOTES, 'UTF-8'); ?> (<?php echo $index + 1; ?>/<?php echo $total; ?>)</Sms>
-	<?php endforeach; ?>
-</Response>
+<?php if($this->_context != 'web'): ?>
+<!DOCTYPE html>
+<html lang="en-us">
+    <head>
+        <meta charset="utf-8">
+		<title><?php echo htmlentities($subject, ENT_NOQUOTES, 'UTF-8'); ?> location found by Martha</title>
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+	</head>
+	<body>
+<?php endif; ?>
+<iframe class="googlemaps" width="100%" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="https://maps.google.com/maps?f=q&source=s_q&hl=en&geocode=&q=<?php echo urlencode($location->result->formatted_address) ?>&ie=UTF8&z=12&t=m&iwloc=near&output=embed"></iframe><br /><small><a href="http://maps.google.com/maps?f=q&source=s_q&hl=en&geocode=&q=<?php echo urlencode($location->result->formatted_address) ?>&ie=UTF8&z=12&t=m&iwloc=near" target="_blank">View Larger Map</a></small>
+
+<?php if($this->_context != 'web'): ?>
+	</body>
+</html>
+<?php endif; ?>

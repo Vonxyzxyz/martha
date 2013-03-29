@@ -58,6 +58,13 @@ class Martha {
     protected $_tembooSession;
 
     /**
+     * The user's medium for interaction with Martha. E.g. "web" (default), "sms", "voice".
+     *
+     * @var string
+     */
+    protected $_context = 'web';
+
+    /**
      * The list of messages to send to the user.
      *
      * @var array
@@ -70,20 +77,30 @@ class Martha {
      * @var array
      */
     protected $_resourceTypes = array(
-        'searchImages' => array('image', 'photo', 'picture'),
-        'searchVideos' => array('video', 'movie', 'film'),
-        'searchTweets' => array('tweet', 'twitter', 'toot')
+       'searchImages' => array('image', 'photo', 'picture'),
+       'searchVideos' => array('video', 'movie', 'film'),
+       'searchTweets' => array('tweet', 'twitter', 'toot')
     );
 
 
     /**
      * Instantiate an instance of Martha with a Temboo connection.
      *
+     * @param string $context the user's medium for interaction with Martha. E.g. "web" (default), "sms", "voice"
      * @return Martha new Martha instance
      */
-    public function __construct() {
+    public function __construct($context = 'web') {
         // Instantiate Temboo session...
         $this->_tembooSession = new Temboo_Session(TEMBOO_ACCOUNT, TEMBOO_APP_NAME, TEMBOO_APP_KEY);
+
+        $this->_context = $context;
+
+        // Twitter's TOS doesn't allow storing Tweet data, so we can only
+        // supply it for inline results, not SMS/voice where results are
+        // uploaded to S3/Dropbox
+        if($context != 'web') {
+            unset($this->_resourceTypes['searchTweets']);
+        }
     }
 
 
@@ -91,7 +108,7 @@ class Martha {
      * Search images.
      *
      * Choreos used in this method:
-     * https://live.temboo.com/library/Library/Flickr/Photos/Search/
+     * https://temboo.com/library/Library/Flickr/Photos/Search/
      *
      * @param string $subject the thing to search for, e.g. "cats"
      * @param int $limit (optional) max number of results
@@ -99,6 +116,8 @@ class Martha {
      * @throws Temboo_Exception should unforeseen misfortunes befall us
      */
     protected function searchImages($subject, $limit = false) {
+        if(!$limit) { $limit = 50; }
+
         // Instantiate the Choreo, using a previously instantiated Temboo_Session object
         $search = new Flickr_Photos_Search($this->_tembooSession);
 
@@ -109,7 +128,7 @@ class Martha {
         $searchInputs->setCredential(TEMBOO_FLICKR_CREDENTIAL);
 
         // Set inputs
-        $searchInputs->setText($subject)->setMedia("photos")->setResponseFormat("json");
+        $searchInputs->setText($subject)->setMedia("photos")->setResponseFormat("json")->setExtras('url_s');
         if($limit) {
             $searchInputs->setPerPage($limit);
         }
@@ -128,7 +147,7 @@ class Martha {
      * Search videos.
      *
      * Choreos used in this method:
-     * https://live.temboo.com/library/Library/YouTube/SearchVideos/
+     * https://temboo.com/library/Library/YouTube/SearchVideos/
      *
      * @param string $subject the thing to search for, e.g. "cats"
      * @param int $limit (optional) max number of results
@@ -136,6 +155,8 @@ class Martha {
      * @throws Temboo_Exception should unforeseen misfortunes befall us
      */
     protected function searchVideos($subject, $limit = false) {
+        if(!$limit) { $limit = 20; }
+
         // Instantiate the Choreo, using a previously instantiated Temboo_Session object
         $searchVideos = new YouTube_SearchVideos($this->_tembooSession);
 
@@ -162,7 +183,7 @@ class Martha {
      * Search tweets.
      *
      * Choreos used in this method:
-     * https://live.temboo.com/library/Library/Twitter/Search/Tweets/
+     * https://temboo.com/library/Library/Twitter/Search/Tweets/
      *
      * @param string $subject the thing to search for, e.g. "cats"
      * @param int $limit (optional) max number of results
@@ -170,6 +191,8 @@ class Martha {
      * @throws Temboo_Exception should unforeseen misfortunes befall us
      */
     protected function searchTweets($subject, $limit = false) {
+        if(!$limit) { $limit = 50; }
+
         // Instantiate the Choreo, using a previously instantiated Temboo_Session object
         $tweets = new Twitter_Search_Tweets($this->_tembooSession);
 
@@ -196,18 +219,169 @@ class Martha {
 
 
     /**
-     * Create a file on Dropbox or S3 (in that order) and return a public URL
+     * Search for a location.
      *
      * Choreos used in this method:
-     * https://live.temboo.com/library/Library/Dropbox/UploadFile/
-     * https://live.temboo.com/library/Library/Dropbox/GetShareableLink/
-     * https://live.temboo.com/library/Library/Amazon/S3/PutObject/
+     * https://temboo.com/library/Library/Google/Geocoding/GeocodeByAddress/
+     *
+     * @param string $subject the location to search for, e.g. "world's largest ball of twine"
+     * @return string a url to a rendered list of results, or an error message on failure
+     * @throws Temboo_Exception should unforeseen misfortunes befall us
+     */
+    public function searchLocation($subject) {
+        // Instantiate the Choreo, using a previously instantiated Temboo_Session object
+        $geocodeByAddress = new Google_Geocoding_GeocodeByAddress($this->_tembooSession);
+
+        // Get an input object for the Choreo
+        $geocodeByAddressInputs = $geocodeByAddress->newInputs();
+
+        // Set inputs
+        $geocodeByAddressInputs->setAddress($subject);
+
+        // Execute Choreo and get results
+        $geocodeByAddressResults = $geocodeByAddress->execute($geocodeByAddressInputs)->getResults();
+
+        $response = simplexml_load_string($geocodeByAddressResults->getResponse());
+
+        return $this->renderLocationResult($subject, $response);
+    }
+
+
+    /**
+     * Search for a word definition.
+     *
+     * Choreos used in this method:
+     * https://temboo.com/library/Library/Wordnik/Word/GetDefinitions/
+     *
+     * @param string $subject the word to search for, e.g. "life"
+     * @return string a url to a rendered list of results, or an error message on failure
+     * @throws Temboo_Exception should unforeseen misfortunes befall us
+     */
+    public function searchDefinition($subject) {
+        // Instantiate the Choreo, using a previously instantiated Temboo_Session object
+        $getDefinitions = new Wordnik_Word_GetDefinitions($this->_tembooSession);
+
+        // Get an input object for the Choreo
+        $getDefinitionsInputs = $getDefinitions->newInputs();
+
+        // Set credential to use for execution
+        $getDefinitionsInputs->setCredential(TEMBOO_WORDNIK_CREDENTIAL);
+
+        // Set inputs
+        $getDefinitionsInputs->setWord($subject)->setCannonical(true)->setLimit("1");
+
+        // Execute Choreo and get results
+        $getDefinitionsResults = $getDefinitions->execute($getDefinitionsInputs)->getResults();
+
+        $response = json_decode($getDefinitionsResults->getResponse());
+
+        // If we got nothing, fall back to DuckDuckGo/Wikipedia search
+        if(count($response) < 1) {
+            return $this->searchAnswers($subject);
+        }
+
+        return $this->renderDefinitionResult($subject, $response);
+    }
+
+
+    /**
+     * Search for a phrase definition or answer to abstract question.
+     *
+     * Choreos used in this method:
+     * https://temboo.com/library/Library/DuckDuckGo/Query/
+     *
+     * @param string $subject the phrase to search for, e.g. "Tim Berners-Lee"
+     * @return string a url to a rendered list of results, or an error message on failure
+     * @throws Temboo_Exception should unforeseen misfortunes befall us
+     */
+    public function searchAnswers($subject) {
+        // Instantiate the Choreo, using a previously instantiated Temboo_Session object
+        $query = new DuckDuckGo_Query($this->_tembooSession);
+
+        // Get an input object for the Choreo
+        $queryInputs = $query->newInputs();
+
+        // Set inputs
+        $queryInputs->setNoHTML("1")->setFormat("json")->setNoRedirect("1")->setSkipDisambiguation("1");
+
+        // First we'll try getting a straight definition from DuckDuckGo
+        $queryInputs->setQuery("define " . $subject);
+
+        // Execute Choreo and get results
+        $queryResults = $query->execute($queryInputs)->getResults();
+
+        $definitionResponse = json_decode($queryResults->getResponse());
+
+        // Now for good measure we'll ask for a Wikipedia url
+        // We can re-use the input and choreo objects
+        if($this->_context != 'web' || !$definitionResponse->AbstractText) {
+            // If this request came over sms/voice, or we'll be returning iframe wikipedia results
+            // (because no definition was found above), get the mobile version of wikipedia
+            $queryInputs->setQuery("!wm " . $subject);
+        } else {
+            // Full desktop wikipedia if we're just providing a vanilla link to a web browser
+            $queryInputs->setQuery("!w " . $subject);
+        }
+
+        // Execute Choreo and get results
+        $queryResults = $query->execute($queryInputs)->getResults();
+
+        $wikipediaResponse = json_decode($queryResults->getResponse());
+
+        return $this->renderAnswerResult($subject, $definitionResponse, $wikipediaResponse);
+
+    }
+
+
+    /**
+     * Create a file on S3 or Dropbox (in that order) and return a public URL
+     *
+     * Choreos used in this method:
+     * https://temboo.com/library/Library/Amazon/S3/PutObject/
+     * https://temboo.com/library/Library/Dropbox/UploadFile/
+     * https://temboo.com/library/Library/Dropbox/GetShareableLink/
      *
      * @param string $filename filename to create
      * @param string $contents file contents to upload
      * @return string public url for file, or false if upload failed
      */
     protected function shareFile($filename, $contents) {
+        if(defined('TEMBOO_S3_CREDENTIAL') && TEMBOO_S3_CREDENTIAL && defined('MARTHA_S3_BUCKET') && MARTHA_S3_BUCKET) {
+            try {
+                // Instantiate the Choreo, using a previously instantiated Temboo_Session object
+                $putObject = new Amazon_S3_PutObject($this->_tembooSession);
+
+                // Get an input object for the Choreo
+                $putObjectInputs = $putObject->newInputs();
+
+                // Set credential to use for execution
+                $putObjectInputs->setCredential(TEMBOO_S3_CREDENTIAL);
+
+                // Set inputs
+                $putObjectInputs->setBucketName(MARTHA_S3_BUCKET)->setFileName($filename)->setFileContents(base64_encode($contents));
+
+                // Execute Choreo and get results
+                $putObjectResults = $putObject->execute($putObjectInputs)->getResults();
+
+                if(defined('MARTHA_URL') && MARTHA_URL) {
+                    $url = MARTHA_URL;
+                    if(!preg_match('/(\/|\.php)$/', $url)) {
+                        $url = $url . '/';
+                    }
+                } else {
+                    $protocol = isset($_SERVER['HTTPS']) ? 'https://' : 'http://';
+                    $url = $protocol . $_SERVER['SERVER_NAME'] . preg_replace('/\/(query\/)?[a-z]+.php$/i', '/index.php', $_SERVER['REQUEST_URI']);
+                }
+                return $url . '?answer=' . urlencode($filename);
+
+            } catch(Temboo_Exception $e) {
+                error_log(__METHOD__ . ' failed with ' . get_class($e) . ': ' . $e->getMessage());
+                // Do nothing, try again with Dropbox below.
+            }
+        }
+
+        // S3 was unavailable or failed. Try Dropbox...
+
         if(defined('TEMBOO_DROPBOX_CREDENTIAL') && TEMBOO_DROPBOX_CREDENTIAL) {
             try {
                 // Instantiate the Choreo, using a previously instantiated Temboo_Session object
@@ -249,42 +423,6 @@ class Martha {
 
             } catch(Temboo_Exception $e) {
                 error_log(__METHOD__ . ' failed with ' . get_class($e) . ': ' . $e->getMessage());
-                // Do nothing, try again with S3 below.
-            }
-        }
-
-        // Dropbox was unavailable or failed. Try S3...
-
-        if(defined('TEMBOO_S3_CREDENTIAL') && TEMBOO_S3_CREDENTIAL && defined('MARTHA_S3_BUCKET') && MARTHA_S3_BUCKET) {
-            try {
-                // Instantiate the Choreo, using a previously instantiated Temboo_Session object
-                $putObject = new Amazon_S3_PutObject($this->_tembooSession);
-
-                // Get an input object for the Choreo
-                $putObjectInputs = $putObject->newInputs();
-
-                // Set credential to use for execution
-                $putObjectInputs->setCredential(TEMBOO_S3_CREDENTIAL);
-
-                // Set inputs
-                $putObjectInputs->setBucketName(MARTHA_S3_BUCKET)->setFileName($filename)->setFileContents(base64_encode($contents));
-
-                // Execute Choreo and get results
-                $putObjectResults = $putObject->execute($putObjectInputs)->getResults();
-
-                if(defined('MARTHA_URL') && MARTHA_URL) {
-                    $url = MARTHA_URL;
-                    if(!preg_match('/(\/|\.php)$/', $url)) {
-                        $url = $url . '/';
-                    }
-                } else {
-                    $protocol = isset($_SERVER['HTTPS']) ? 'https://' : 'http://';
-                    $url = $protocol . $_SERVER['SERVER_NAME'] . preg_replace('/\/(query\/)?[a-z]+.php$/i', '/index.php', $_SERVER['REQUEST_URI']);
-                }
-                return $url . '?answer=' . urlencode($filename);
-
-            } catch(Temboo_Exception $e) {
-                error_log(__METHOD__ . ' failed with ' . get_class($e) . ': ' . $e->getMessage());
                 // Do nothing, return false below.
             }
         }
@@ -297,7 +435,7 @@ class Martha {
      * Serve a file from S3. We route through Martha, so the S3 bucket need not be public.
      *
      * Choreos used in this method:
-     * https://live.temboo.com/library/Library/Amazon/S3/GetBase64EncodedObject/
+     * https://temboo.com/library/Library/Amazon/S3/GetBase64EncodedObject/
      *
      * @param string $filename filename to serve
      * @return string contents of file, or false if not found
@@ -335,7 +473,7 @@ class Martha {
      * Shorten a URL, if possible.
      *
      * Choreos used in this method:
-     * https://live.temboo.com/library/Library/Bitly/Links/ShortenURL/
+     * https://temboo.com/library/Library/Bitly/Links/ShortenURL/
      *
      * @param string $url a long url
      * @return string a short url, or the original if shortening failed
@@ -374,7 +512,7 @@ class Martha {
      * Send an SMS text message.
      *
      * Choreos used in this method:
-     * https://live.temboo.com/library/Library/Twilio/SendSMS/
+     * https://temboo.com/library/Library/Twilio/SendSMS/
      *
      * @param string $to a phone number to text
      * @param string $message the message to send
@@ -399,12 +537,11 @@ class Martha {
 
 
     /**
-     * Render a list of a given resource (images, tweets, etc.) into a shareble web page.
+     * Render a list of a given resource (images, tweets, etc.)
      *
      * @param string $searchMethod the search method that called renderListResults, from which we can infer the resource type
      * @param string $subject the search terms use to find the items in the list ("cats")
      * @param array $items array of resources
-     * @return string a url to a rendered list of results, or an error message on failure
      */
     protected function renderListResults($searchMethod, $subject, $items = array()) {
 
@@ -416,7 +553,7 @@ class Martha {
 
         // If it's an empty list, just say sorry.
         if(count($items) < 1) {
-            return $this->foundNone() . ' ' . $subject . ' ' . $type;
+            return $this->say($this->foundNone() . ' ' . $subject . ' ' . $type . '.');
         }
 
         // Cheat to render the template to a string.
@@ -424,26 +561,121 @@ class Martha {
         require('views/'.$searchMethod.'.php');
         $html = ob_get_clean();
 
-        // Upload to Dropbox or S3
-        $filename = uniqid('martha-'.$type.'-', true) . '.html';
-        $url = $this->shareFile($filename, $html);
 
-        // If a page was successfully uploaded, link to it for full results (and shorter text messages!)
-        if($url) {
-            $url = $this->shortenUrl($url);
-            return $this->foundSome() . ' ' . count($items). ' ' . $subject . ' ' . $type . ': ' . $url;
+        // For SMS or voice requests, we return just a URL to the rendered results on Dropbox/S3.
+        // For web requests, HTML results are inline.
+        if($this->_context != 'web') {
+            // Upload to Dropbox or S3
+            $filename = uniqid('martha-'.$type.'-', true) . '.html';
+            $url = $this->shareFile($filename, $html);
+
+            // If a page was successfully uploaded, link to it for full results (and shorter text messages!)
+            if($url) {
+                $url = $this->shortenUrl($url);
+                return $this->say($this->foundSome() . ' ' . count($items). ' ' . $subject . ' ' . $type . ': ' . $url);
+            }
+
+            return $this->error();
+        } else {
+            $this->say($this->foundSome() . ' ' . count($items). ' ' . $subject . ' ' . $type . ':');
+            return $this->say($html, true);
         }
-
-        return $this->error();
     }
 
+
+    /**
+     * Render a location.
+     *
+     * @param string $subject the search terms use to find the location ("world's largest ball of twine")
+     * @param array $location location result
+     */
+    protected function renderLocationResult($subject, $location) {
+        if($location->status != 'OK') {
+            return $this->say($this->foundNone() . ' ' . $subject . ' locations.');
+        }
+
+        $name = $location->result->formatted_address;
+        if(strlen($name) > 80 && isset($location->result->address_component[0])) {
+            $name = $location->result->address_component[0]->short_name;
+        }
+
+        // For SMS or voice requests, we return just a URL to google maps for the normalized address.
+        // For web requests, map results are inline.
+        if($this->_context != 'web') {
+            $url = 'http://maps.google.com/maps?f=q&source=s_q&hl=en&geocode=&q=' . urlencode($location->result->formatted_address) . '&ie=UTF8&z=12&t=m&iwloc=near';
+            $url = $this->shortenUrl($url);
+            return $this->say($this->foundSome() . ' ' . $name . ': ' . $url);
+        } else {
+            // Cheat to render the template to a string.
+            ob_start();
+            require('views/searchLocations.php');
+            $html = ob_get_clean();
+
+            $this->say($this->foundSome() . ' ' . $name . ':');
+            return $this->say($html, true);
+        }
+}
+
+
+    /**
+     * Render a definition.
+     *
+     * @param string $subject the search term use to find the definition ("life")
+     * @param array $definition definition result
+     */
+    protected function renderDefinitionResult($subject, $definition) {
+
+        $this->say($this->foundSome() . ' a definition of ' . $definition[0]->word . ':');
+
+        if($this->_context != 'web') {
+            $this->say($definition[0]->text . ' (wordnik.com)');
+        } else {
+             $this->say($definition[0]->text);
+             $this->say('<p class="powered-by"><a href="http://wordnik.com/words/' . htmlentities($definition[0]->word, ENT_COMPAT, 'UTF-8') . '" target="_blank"><img src="assets/examples-poweredby-wordnik.png" alt="Powered by Wordnik" /></a></p>', true);
+        }
+    }
+
+
+    /**
+     * Render an answer to an abstraction question/phrase definition.
+     *
+     * @param string $subject the search terms used to find the answer ("Tim Berners-Lee")
+     * @param array $definition definition result
+     * @param array $wikipedia wikipedia result
+     */
+    protected function renderAnswerResult($subject, $definition, $wikipedia) {
+        if($definition->AbstractText) {
+            if($definition->Heading) {
+                $subject = $definition->Heading;
+            }
+            $this->say('Let me tell you about ' . $subject . ':');
+
+            $this->say($definition->AbstractText);
+            if($this->_context != 'web') {
+                $this->say('Read more at Wikipedia: ' . $this->shortenUrl($wikipedia->Redirect));
+            } else {
+                $this->say('<p><a href="' . $wikipedia->Redirect . '" target="_blank" class="powered-by">Read more on Wikipedia</a></p>', true);
+            }
+        } else {
+            if($this->_context != 'web') {
+                $this->say($this->notSure() . " Let's ask Wikipedia: " . $this->shortenUrl($wikipedia->Redirect));
+            } else {
+                $this->say($this->notSure() . " Let's ask Wikipedia:");
+                $this->say('<iframe src="' . str_replace('http://', 'https://', $wikipedia->Redirect) . '" class="wikipedia"></iframe>', true);
+            }
+        }
+    }
 
     /**
      * Queue a new message to send to the user.
      *
      * @param string $message the next message
+     * @param bool $allowHtml whether to allow unescaped HTML in the message (default false).
      */
-    public function say($message) {
+    public function say($message, $allowHtml = false) {
+        if(!$allowHtml) {
+            $message = htmlspecialchars($message, ENT_NOQUOTES, 'UTF-8');
+        }
         $this->_messages[] = $message;
     }
 
@@ -470,7 +702,11 @@ class Martha {
     public function query($query) {
 
         if(strlen($query) < 1) {
-            return $this->say($this->greet());
+            return;
+        }
+
+        if($query == '?') {
+            return $this->help();
         }
 
         // Some basic scrubbing to make the bigger regexes below simpler...
@@ -483,21 +719,62 @@ class Martha {
 
         // Remove any superfluous addressing of the bot. Tolerates one word before or aft ("dear martha", "martha dear").
         $query = preg_replace('/^(\w+ )?martha\S? /i', '', $query);
-        $query = preg_replace('/ martha\S?( \w+)$/i', '', $query);
+        $query = preg_replace('/ martha\S?( \w+)?$/i', '', $query);
+
+        // Is someone just being friendly?
+        if(preg_match('/^(hi|hello|hey|howdy|good (morning|afternoon|evening|day))$/i', $query)) {
+            return $this->say($this->greet());
+        }
 
         // Remove any other polite pre/postamble.
-        $query = preg_replace('/^((please|kindly|pray|help|go|run|do|perform|will\ you|would\ you|can\ i\ have|may\ i\ have|
+        $query = preg_replace('/^((please|hey|hi|hello|kindly|pray|help|go|run|do|perform|will\ you|would\ you|can\ i\ have|may\ i\ have|
                                 could\ you|can\ you|quickly|immediately|try\ to|try)(\ for)?(\ me|\ us)?(\ an?)?\ )*/ix', '', $query);
         $query = preg_replace('/(\ (please|right\ now|now|quickly|immediately|stat|thanks|thank\ you|for\ me|for\ us))*$/ix', '', $query);
 
         // Remove superfluous language specifying a search/request.
-        $query = trim(preg_replace('/^((i\ )?(we\ )?(find|get|search|bring|show|list|display|fetch|query|locate|look|
+        $query = trim(preg_replace('/^((i\ )?(we\ )?(find|get|search|bring|show|give|list|display|fetch|query|look|
                                 want|need|gett)(you\ to|ing)?(\ for)?(\ me|\ us)?\ )*/ix', '', $query));
 
 
         // If nothing survived all that, just say hello.
         if(strlen($query) < 1) {
             return $this->say($this->greet());
+        }
+
+        // Some simple canned responses
+        switch(strtolower($query)) {
+            case 'who are you':
+                return $this->say("I am Martha, ask me anything!");
+                break;
+            case 'where are you':
+                return $this->say("I exist in distributed form, scattered throughout a series of tubes, answering questions and finding things for you.");
+                break;
+            case 'who made you':
+                return $this->say("I was lovingly hand-coded by the software artisans at Temboo.");
+                break;
+            case 'what is the best api':
+                return $this->say("I use Temboo so they all look the same to me :-)");
+                break;
+            case 'are you human':
+                return $this->say("I find it's best to leave them guessing.");
+                break;
+            case 'what are you wearing':
+                return $this->say("An elegant pantsuit woven from a single string of JSON");
+                break;
+            case 'rock':
+            case 'paper':
+            case 'scissors':
+                return $this->rps($query);
+                break;
+        }
+
+        if(preg_match('/global.?thermonuclear.?war/i', $query)) {
+            return $this->say("How about a nice game of chess?");
+        }
+
+        // A plea for help?
+        if(preg_match('/^(help|--help|about|what|what are you|what is this|what do you know( how to do)?|what can you do|who is)$/i', $query)) {
+            return $this->help();
         }
 
         // Check for a request to limit the number of results.
@@ -511,7 +788,7 @@ class Martha {
         } else { // No? Fine. We'll do it the hard way.
 
             // What? "Some" is definitely, objectively equal to 5. Look it up.
-            $limitAliases =  array('some' => 5, 'a few' => 3, 'a couple' => 2, 'many' => 20, 'several' => 20, 'all' => 100,
+            $limitAliases =  array('some' => 5, 'a few' => 3, 'a couple' => 2, 'many' => 20, 'several' => 20, 'all' => false,
                 'a bunch' => 15, 'any' => 10, 'an' => 1, 'a' => 1,
                 'ten' => 10, 'eleven' => 11, 'twelve' => 12, 'thirteen' => 13, 'fourteen' => 14, 'fifteen' => 15,
                 'sixteen' => 16, 'seventeen' => 17, 'eighteen' => 18, 'nineteen' => 19, 'twenty' => 20,
@@ -537,31 +814,126 @@ class Martha {
             foreach($this->_resourceTypes as $searchMethod => $types) {
                 if(in_array($type, $types)) {
                     try {
-                        return $this->say(call_user_func(array($this, $searchMethod), $subject, $limit));
+                        return call_user_func(array($this, $searchMethod), $subject, $limit);
                     } catch(Temboo_Exception $e) {
                         error_log(__CLASS__ . '::' . $searchMethod . ' failed with ' . get_class($e) . ': ' . $e->getMessage());
-                        return $this->say($this->error($e->getMessage()));
+                        return $this->error($e->getMessage());
                     }
                 }
             }
         }
 
-        // Okay, not a search. Maybe some banter?
-        if(preg_match('/^(hi|hello|hey|howdy|good (morning|afternoon|evening|day))/i', $query)) {
-            return $this->say($this->greet());
+        // Check for location queries
+        if(preg_match('/^(where( (is|are|.*find))?|.*directions?( to)?|locate|.*locations?( of| for)?) (?P<subject>.+)$/i', $query, $matches)) {
+            $subject = $matches['subject'];
+            switch(strtolower($subject)) {
+                case 'temboo':
+                    $subject = '104 Franklin Street, NYC';
+                    break;
+                case 'am i':
+                    $subject = 'On Top of The World';
+                    break;
+            }
+            try {
+                return $this->searchLocation($subject);
+            } catch(Temboo_Exception $e) {
+                error_log(__CLASS__ . '::searchLocation failed with ' . get_class($e) . ': ' . $e->getMessage());
+                return $this->error($e->getMessage());
+            }
         }
+
+        if(!$limit) {
+            // Check for definition query for a single word. Note this also catches queries that are just a single word.
+            if(preg_match('/^(((what do )?you know( of| about)?|what( is| are| was| were)?|tell( me| us)? (of|about)|.*definition( of)?|.*meaning( of)?|define|about)( the| an?)? )?(?P<subject>\w+)$/i', $query, $matches)) {
+                $subject = $matches['subject'];
+                switch(strtolower($subject)) {
+                    case 'temboo':
+                        if($this->_context != 'web') {
+                            return $this->say("Temboo made me. You should follow them on Twitter: " . $this->shortenUrl('https://twitter.com/temboo'));
+                        } else {
+                            return $this->say('Temboo made me. You should follow them on <a href="https://twitter.com/temboo" target="_blank">Twitter</a>.', true);
+                        }
+                        break;
+                }
+                try {
+                    return $this->searchDefinition($subject);
+                } catch(Temboo_Exception $e) {
+                    error_log(__CLASS__ . '::searchDefinition failed with ' . get_class($e) . ': ' . $e->getMessage());
+                    return $this->error($e->getMessage());
+                }
+            }
+        }
+
+
+        // Check for other what/why/who questions
+        if(preg_match('/^((what do )?you know( of| about)?|(what|who|why)( is| are| was| were)?|tell( me| us)? (of|about)|.*definition( of)?|.*meaning( of)?|define|about)( the| an?)? (?P<subject>.+)$/i', $query, $matches)) {
+            $subject = $matches['subject'];
+            switch(strtolower($subject)) {
+                case 'temboo':
+                    if($this->_context != 'web') {
+                        return $this->say("Temboo made me. You should follow them on Twitter: " . $this->shortenUrl('https://twitter.com/temboo'));
+                    } else {
+                        return $this->say('Temboo made me. You should follow them on <a href="https://twitter.com/temboo" target="_blank">Twitter</a>.', true);
+                    }
+                    break;
+                case 'general bucket':
+                    if($this->_context == 'web') {
+                        $this->say('<em>*salute*</em>', true);
+                        return $this->say('<p class="general-bucket"><a href="assets/general-bucket.png" target="_blank"><img src="assets/general-bucket.png" class="general-bucket" /></a></p>', true);
+                    }
+                    break;
+            }
+            try {
+                return $this->searchAnswers($subject);
+            } catch(Temboo_Exception $e) {
+                error_log(__CLASS__ . '::searchAnswers failed with ' . get_class($e) . ': ' . $e->getMessage());
+                return $this->error($e->getMessage());
+            }
+        }
+
+        // Okay, not a search. Maybe some polite banter?
         if(preg_match('/^how (are|is|have)/i', $query)) {
             return $this->say($this->howAre());
         }
 
-        // A plea for help?
-        if(preg_match('/^(help|--help|what now|what can you|how do|you know|about|tell me about|what are you|ideas)/i', $query)) {
-            return $this->help();
+
+        // More canned responses
+        if(preg_match('/play a game/i', $query)) {
+            return $this->say("How about " . $this->randomItem("Rock, Paper, Scissors?", "Global Thermonuclear War?", "a nice game of chess?"));
         }
 
-        // Give up!
-        $this->say($this->sorryDave());
-        $this->say('Try asking "what can you do for me?" or "Martha help"');
+        if(preg_match('/general bucket/i', $query)) {
+            if($this->_context == 'web') {
+                $this->say('<em>*salute*</em>', true);
+                    return $this->say('<p class="general-bucket"><a href="assets/general-bucket.png" target="_blank"><img src="assets/general-bucket.png" class="general-bucket" /></a></p>', true);
+            }
+        }
+
+
+        // Give up, do a random search type!
+        $searchTypes = array_keys($this->_resourceTypes);
+        if(!$limit) {
+            $searchTypes[] = 'searchAnswers';
+        }
+        $searchType = $this->randomItem($searchTypes);
+        if(!$limit) {
+            switch($searchType) {
+                case 'searchImages':
+                    $limit = rand(3, 7);
+                    break;
+                case 'searchVideos':
+                    $limit = 6;
+                    break;
+                case 'searchTweets':
+                    $limit = rand(5, 10);
+                    break;
+                default:
+                    $limit = false;
+            }
+
+        }
+        error_log($searchType);
+        return call_user_func(array($this, $searchType), $query, $limit);
     }
 
 
@@ -602,7 +974,7 @@ class Martha {
      *
      * @return string randomly selected string
      */
-    public function foundSome() {
+    public function goodNews() {
         return $this->randomItem(
             "You'll be pleased to know",
             'Good news!',
@@ -611,7 +983,16 @@ class Martha {
             'Here you go!',
             'Am I good or what?',
             'Yes!'
-        )
+        );
+    }
+
+    /**
+     * A random way to say we found something.
+     *
+     * @return string randomly selected string
+     */
+    public function foundSome() {
+        return $this->goodNews()
         . ' '
         . $this->randomItem(
             'I found',
@@ -638,20 +1019,17 @@ class Martha {
 
 
     /**
-     * A random error report.
+     * A random admission of uncertainty.
      *
-     * @param string $message (optional) detailed error to append to random apology.
      * @return string randomly selected string
      */
-    public function error($message = null) {
-        $apology = $this->randomItem(
-            'Sorry, something went wrong!',
-            'Oops, I had an error.',
-            'Oh dear, an error.',
-            'Help, I need a debugger!'
+    public function notSure() {
+        return $this->randomItem(
+            "I'm not sure.",
+            "I have absolutely no idea.",
+            "Beats me!",
+            "Um... good question!"
         );
-        return $message ? "$apology $message" : $apology;
-
     }
 
 
@@ -703,35 +1081,122 @@ class Martha {
 
 
     /**
+     * Play Rock, Paper, Scissors!
+     *
+     * @param string $userMove player's move
+     */
+    public function rps($userMove) {
+        $userMove = strtolower($userMove);
+        $marthaMove = $this->randomItem('rock', 'paper', 'scissors');
+        $this->say(ucfirst($marthaMove) . "!");
+        if($userMove == $marthaMove) {
+            return $this->say($this->randomItem("It's a tie! Rematch?", "Best two out of three?"));
+        }
+        if(in_array("$userMove$marthaMove", array('paperrock', 'scissorspaper', 'rockscissors'))) {
+            return $this->say($this->randomItem("Well played!", "Good game!", "You win!", "A winner is you!"));
+        }
+            return $this->say($this->randomItem("A winner is Martha!", "You were a good sport though.", "Again?"));
+    }
+
+
+    /**
+     * Make up a random search Martha knows how to tackle
+     *
+     * @return string randomly built string
+     */
+    public function suggest() {
+        $person = $this->randomItem('Tim Berners-Lee', 'Super Mario', 'Jean-Michel Basquiat', 'Levon Helm', 'Barack Obama', 'Shigeru Miyamoto', 'Eero Aarnio', 'Martin Scorsese', 'Twyla Tharp', 'Edward Tufte');
+
+        $place = $this->randomItem('104 Franklin Street, NYC', 'Grand Central Station', 'Corsica', 'Geneva', 'Portland', 'Dublin', 'Tokyo', 'Heaven on Earth', 'Atlantis', 'Waldo', 'Hot Coffee');
+
+        $things = array('3d printer', 'planet', 'goat', 'raccoon', 'computer program', 'skyscraper', 'data visualization', 'double-neck guitar', 'vinyl record', 'pdp-11', 'Baobab Tree', 'large hadron collider');
+
+        $thingsIncludingIrregulars = array_merge($things, array('arcade game', 'salmon', 'javascript', 'zorbing', 'democracy', 'ARP 2600', 'IBM 701'));
+
+        $resourceSearch = $this->randomItem('Find me', 'Search for', 'Get me', 'Run a search for', 'Look for', 'Find');
+
+        $randomTypes = array_keys($this->_resourceTypes);
+        shuffle($randomTypes);
+        $type = $randomTypes[0];
+        if($type == 'searchImages') {
+            $preposition = $this->randomItem('of', 'with');
+        } else {
+            $preposition = $this->randomItem('of', 'about', 'with');
+        }
+        if($type == 'searchTweets') {
+            $type = "tweets"; // No other dignified synonyms
+        } else {
+            $type = $this->randomItem($this->_resourceTypes[$type]) . 's';
+        }
+
+        switch(rand(0,4)) {
+            case 0:
+                $thing = $this->randomItem($things) . 's';
+                $number = $this->randomItem('two', 'three', 'four', 'five', 'ten', 'twenty', 'some', 'all the');
+                return implode(' ', array($resourceSearch, $number, $type, $preposition, $thing)) . '.';
+                break;
+            case 1:
+                $thing = $this->randomItem($thingsIncludingIrregulars);
+                $number = rand(2, 20);
+                return implode(' ', array($resourceSearch, $number, $thing, $type)) . '.';
+                break;
+            case 2:
+                return $this->randomItem("Define " . $this->randomItem($thingsIncludingIrregulars) . ".", "What is a " . $this->randomItem($things) . "?");
+                break;
+            case 3:
+                return $this->randomItem('Where is ', 'Where can I find ', 'Locate ') . $place . '?';
+                break;
+            case 4:
+                return $this->randomItem('Who is ', 'Do you know ') . $person . '?';
+                break;
+
+        }
+    }
+
+    /**
      * Usage suggestions and info about Martha.
      *
      * @return string randomly built string
      */
     public function help() {
+        $this->say("Please let me help!");
 
-        $this->say("I'm Martha and I can help you find things online! Try asking:");
+        $this->say("I'm Martha and I can help you answer questions and find things online. Try asking:");
 
-        $searches = array('Find me', 'Search for', 'Get me', 'Run a search for', 'Look for', 'Find');
-        shuffle($searches);
-        $search1 = $searches[0];
-        $search2 = $searches[1];
+        $suggestions = array($this->suggest(), $this->suggest(), $this->suggest());
 
-        $number1 = $this->randomItem('two', 'three', 'four', 'five', 'ten', 'twenty', 'some', 'all the');
-        $number2 = rand(2,50);
+        if($this->_context != 'web') {
+            foreach($suggestions as $suggestion) {
+                $this->say($suggestion);
+            }
+            $this->say("I can talk to all of these APIs thanks to Temboo! https://temboo.com");
+            $this->say("You can read my source at https://github.com/temboo/martha");
+        } else {
+            foreach($suggestions as $suggestion) {
+                $this->say('<p><a href="?query=' . htmlentities($suggestion, ENT_COMPAT, 'UTF-8') . '" class="suggestion">"' .  htmlentities($suggestion, ENT_NOQUOTES, 'UTF-8') . '"</a></p>', true);
+            }
+            $this->say('<p>I can talk to all of these APIs thanks to <a href="https://temboo.com/" target="_blank">Temboo</a>!</p>', true);
+            $this->say('<p>You can read my source at <a href="https://github.com/temboo/martha" target="_blank">Github</a>.</p>', true);
+        }
+    }
 
-        $randomTypes = $this->_resourceTypes;
-        shuffle($randomTypes);
-        $type1 = $this->randomItem($randomTypes[0]) . 's';
-        $type2 = $this->randomItem($randomTypes[1]) . 's';
 
-        $thing1 = $this->randomItem('cats', 'dogs', 'penguins', 'cake', 'robots', 'sunsets', 'New York', 'maps', 'beer');
-        $thing2 = $this->randomItem('cat', 'dog', 'penguin', 'cake', 'robot', 'sunset', 'New York', 'map', 'beer');
+    /**
+     * A random error report.
+     *
+     * @param string $message (optional) detailed error to append to random apology.
+     */
+    public function error($message = null) {
+        $this->say($this->randomItem(
+            'Sorry, something went wrong!',
+            'Oops, I had an error.',
+            'Oh dear, an error.',
+            'Help, I need a debugger!'
+        ));
+        if($message) {
+            $this->say($message);
+        }
 
-        $this->say('"' . implode(' ', array($search1, $number1, $type1, $this->randomItem('of', 'about', 'with'), $thing1)) . '."');
-        $this->say('"' . implode(' ', array($search2, $number2, $thing2, $type2)) . '."');
-
-        $this->say("I can talk to all of these APIs thanks to Temboo! https://temboo.com");
-        $this->say("You can read my source at https://github.com/pseudomammal/temboo-martha");
     }
 
 

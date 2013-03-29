@@ -29,6 +29,7 @@
  */
 
 ?>
+<?php if($this->_context != 'web'): ?>
 <!DOCTYPE html>
 <html lang="en-us">
     <head>
@@ -37,6 +38,7 @@
 		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 	</head>
 	<body>
+<?php endif; ?>
 	<?php foreach($items as $status): ?>
 		<blockquote class="twitter-tweet">
 			<a href="https://twitter.com/<?php echo urlencode($status->user->screen_name); ?>/statuses/<?php echo urlencode($status->id); ?>">
@@ -45,5 +47,7 @@
 		</blockquote>
 	<?php endforeach; ?>
 	<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+<?php if($this->_context != 'web'): ?>
 	</body>
 </html>
+<?php endif; ?>

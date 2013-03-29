@@ -40,26 +40,41 @@
 		<link type="text/css" rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,300,700"/>
 		<link rel="stylesheet" href="assets/martha.css">
 		<link rel="shortcut icon" href="assets/temboo-drop-orange.png" type="image/png"/>
-		<link rel="apple-touch-icon" href="assets/temboo-drop-touch-icon.png"/>
+		<link rel="apple-touch-icon" href="assets/temboo-martha-touch-icon.png"/>
 		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 		<script src="assets/martha.js"></script>
 	</head>
 	<body>
 		<form id="martha-form" action="" data-action="query/ajax.php" method="POST">
-			<div class="hal">
-				<a id="help" href="?query=help">?</a>
-				<div id="martha-dialog">
-					<?php if(isset($query) && strlen($query) > 0): ?>
-						<div class="query"><?php echo htmlentities($query, ENT_NOQUOTES, 'UTF-8'); ?></div>
-					<?php endif; ?>
-					<?php foreach($martha->messages() as $index => $message): ?>
-						<div class="message"><?php echo htmlentities($message, ENT_NOQUOTES, 'UTF-8'); ?></div>
-					<?php endforeach; ?>
-				</div>
-				<input type="text" name="query" id="martha-query" autocomplete="off" />
-				<p id="credits"><a href="https://temboo.com/" target="_blank">Powered by Temboo</a></p>
-			</div>
-			<input type="submit" value="" disabled="disabled" />
+			<input type="text" name="query" autocomplete="off" placeholder="What do you want?" />
 		</form>
+		<?php if(isset($query) && strlen($query) > 0): ?>
+			<div id="martha-query"><?php echo htmlentities($query, ENT_NOQUOTES, 'UTF-8'); ?></div>
+			<div id="martha-answer">
+				<?php $messages = $martha->messages(); $message = array_shift($messages); ?>
+				<div class="message answer"><?php echo $message; ?></div>
+			</div>
+			<div id="martha-results">
+				<?php foreach($messages as $message): ?>
+					<div class="message"><?php echo $message; ?></div>
+				<?php endforeach; ?>
+			</div>
+		<?php else: ?>
+			<div id="martha-query"></div>
+			<div id="martha-answer" style="display: none"></div>
+			<div id="martha-results" style="display: none"></div>
+		<?php endif; ?>
+		<div id="martha-welcome"<?php if(isset($query) && strlen($query) > 0): ?> style="display: none"<?php endif; ?>>
+			<h1>Hi, I'm Martha!</h1>
+			<p>I can help you answer questions and find things.</p>
+			<p>Try asking me some stuff like this:</p>
+			<div class="examples">
+				<p><a href="?query=Show me 5 videos of quadrocopters." class="suggestion">"Show me 5 videos of quadrocopters."</a></p>
+				<p><a href="?query=Where is the world's largest ball of twine?" class="suggestion">"Where is the world's largest ball of twine?"</a></p>
+				<p><a href="?query=Who is Tim Berners-Lee?" class="suggestion">"Who is Tim Berners-Lee?"</a></p>
+			</div>
+			<p>Or type <a href="?query=help" class="suggestion">"help"</a> for more assistance.</p>
+		</div>
+		<div id="spinner"></div>
 	</body>
 </html>

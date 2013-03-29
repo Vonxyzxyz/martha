@@ -27,78 +27,66 @@
  */
 
 $(function(){
-	var form = $('#martha-form');
-	var input = $('input[name=query]', form);
-	var submit = $('input[type=submit]', form);
-	submit.fadeOut('fast', function(){
-		submit.attr('disabled', false);
-		submit.fadeIn('fast');
-	});
-	var fadeInterval;
-	var dialog = $('#martha-dialog');
-	linkify(dialog);
-	form.submit(function(e){
+	var $form = $('#martha-form');
+	var $input = $('input[name=query]', $form);
+	var $query = $('#martha-query');
+	var $answer = $('#martha-answer');
+	var $results = $('#martha-results');
+	var $welcome = $('#martha-welcome');
+	var $spinner = $('#spinner');
+	$input.placeholder();
+	$form.submit(function(e){
 		e.preventDefault();
-		var query = input.val();
-		if(query.length > 0) {
-			$('<div class="query"/>').text(query).appendTo(dialog);
-		}
-		input.val('').attr('disabled', true);
-		submit.attr('disabled', true);
+		$input.attr('placeholder', 'Need something else?');
+		$answer.hide().html('');
+		$results.hide().html('');
+		$spinner.fadeIn('fast');
+		$welcome.hide();
+		var query = $input.val();
+		$input.attr('disabled', true);
 		if( /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent) ) {
-			input.blur();
+			$input.blur();
 		}
-		fadeOut();
-		$.post(form.data('action'), { query: query }, function(results){
-			input.attr('disabled', false);
-			submit.attr('disabled', false).stop().fadeTo(1, 1);
+		$query.text('');
+		if(query.length < 1) {
+			$.post('query/suggestions.php', {}, function(results){
+				$input.attr('disabled', false);
+				if(results.suggestions && results.suggestions.length) {
+					var $examples = $welcome.find('.examples').html('');
+					for(var i = 0, j = results.suggestions.length; i < j; i++) {
+						var suggestion = results.suggestions[i];
+						$('<p>').html('<a href="?query=' + suggestion + '" class="suggestion">"' + suggestion + '"</a>').appendTo($examples);
+					}
+				}
+				$spinner.fadeOut('fast', function(){
+					$welcome.fadeIn('fast');
+				});
+			}, 'json');
+			return;
+		}
+		$.post($form.data('action'), { query: query }, function(results){
+			$input.val('').attr('disabled', false);
+			$('<div class="message answer"/>').html(results.messages[0]).appendTo($answer);
 			if(results.messages && results.messages.length) {
-				for(var i = 0, j = results.messages.length; i < j; i++) {
+				for(var i = 1, j = results.messages.length; i < j; i++) {
 					var message = results.messages[i];
-					linkify($('<div class="message"/>').text(message).appendTo(dialog));
-					$('html, body').animate({ scrollTop: $(document).height() }, 'fast');
+					$('<div class="message"/>').html(message).appendTo($results);
 				}
 			}
+			$spinner.fadeOut('fast', function(){
+				$query.text(query);
+				$answer.fadeIn('fast');
+				$results.fadeIn('fast');
+			});
 		}, 'json');
 	});
 
-	dialog.on('click', 'a.help', function(e){
+	$(document).on('click', 'a.suggestion', function(e){
 		e.preventDefault();
-		var oldVal = input.val();
-		input.val($(this).text());
-		form.submit();
-		input.val(oldVal);
+		$input.val($(this).text().replace(/\"/g, ''));
+		$form.submit();
 	});
-
-	$('#help').click(function(e){
-		e.preventDefault();
-		var oldVal = input.val();
-		input.val("help!");
-		form.submit();
-		input.val(oldVal);
-	});
-
-	function linkify(linkContainer) {
-		linkContainer = $(linkContainer);
-		var newHtml = linkContainer.html();
-		newHtml = newHtml.replace(/(http:\/\/bit.ly\/\w+|https:\/\/github.com\/temboo|https:\/\/github.com\/pseudomammal\/temboo-martha|https:\/\/temboo.com)/g, '<a href="$1" target="_blank">$1</a>');
-		newHtml = newHtml.replace(/(^|\s+)@(\w+)/g, '$1<a href="http://twitter.com/$2" target="_blank">@$2</a>');
-		newHtml = newHtml.replace(/"(what can you do for me\?|Martha help)"/g, '"<a class="help" href="?query=help">$1</a>"');
-		linkContainer.html(newHtml);
-		return linkContainer;
-	}
-
-	function fadeOut() {
-		if(submit.attr('disabled')) {
-			submit.fadeTo('slow', 0.5, fadeIn);
-		}
-	}
-
-	function fadeIn() {
-		if(submit.attr('disabled')) {
-			submit.fadeTo('slow', 1, fadeOut);
-		}
-	}
-
-	$('html, body').animate({ scrollTop: $(document).height() }, 'fast');
 });
+
+/*! http://mths.be/placeholder v2.0.7 by @mathias */
+;(function(f,h,$){var a='placeholder' in h.createElement('input'),d='placeholder' in h.createElement('textarea'),i=$.fn,c=$.valHooks,k,j;if(a&&d){j=i.placeholder=function(){return this};j.input=j.textarea=true}else{j=i.placeholder=function(){var l=this;l.filter((a?'textarea':':input')+'[placeholder]').not('.placeholder').bind({'focus.placeholder':b,'blur.placeholder':e}).data('placeholder-enabled',true).trigger('blur.placeholder');return l};j.input=a;j.textarea=d;k={get:function(m){var l=$(m);return l.data('placeholder-enabled')&&l.hasClass('placeholder')?'':m.value},set:function(m,n){var l=$(m);if(!l.data('placeholder-enabled')){return m.value=n}if(n==''){m.value=n;if(m!=h.activeElement){e.call(m)}}else{if(l.hasClass('placeholder')){b.call(m,true,n)||(m.value=n)}else{m.value=n}}return l}};a||(c.input=k);d||(c.textarea=k);$(function(){$(h).delegate('form','submit.placeholder',function(){var l=$('.placeholder',this).each(b);setTimeout(function(){l.each(e)},10)})});$(f).bind('beforeunload.placeholder',function(){$('.placeholder').each(function(){this.value=''})})}function g(m){var l={},n=/^jQuery\d+$/;$.each(m.attributes,function(p,o){if(o.specified&&!n.test(o.name)){l[o.name]=o.value}});return l}function b(m,n){var l=this,o=$(l);if(l.value==o.attr('placeholder')&&o.hasClass('placeholder')){if(o.data('placeholder-password')){o=o.hide().next().show().attr('id',o.removeAttr('id').data('placeholder-id'));if(m===true){return o[0].value=n}o.focus()}else{l.value='';o.removeClass('placeholder');l==h.activeElement&&l.select()}}}function e(){var q,l=this,p=$(l),m=p,o=this.id;if(l.value==''){if(l.type=='password'){if(!p.data('placeholder-textinput')){try{q=p.clone().attr({type:'text'})}catch(n){q=$('<input>').attr($.extend(g(this),{type:'text'}))}q.removeAttr('name').data({'placeholder-password':true,'placeholder-id':o}).bind('focus.placeholder',b);p.data({'placeholder-textinput':q,'placeholder-id':o}).before(q)}p=p.removeAttr('id').hide().prev().attr('id',o).show()}p.addClass('placeholder');p[0].value=p.attr('placeholder')}else{p.removeClass('placeholder')}}}(this,document,jQuery));

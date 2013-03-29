@@ -41,7 +41,7 @@ if (!isset($_SERVER['PHP_AUTH_USER']) || $_SERVER['PHP_AUTH_USER'] != TWILIO_CAL
 // Martha core files.
 require_once('../martha.php');
 
-$martha = new Martha();
+$martha = new Martha('voice');
 
 
 // No query here. Just a TwiML response to greet the user and request their voice

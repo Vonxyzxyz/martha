@@ -25,13 +25,15 @@
  * @license    http://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       http://www.temboo.com
  * @package    Martha
- * @subpackage Views
+ * @subpackage Controllers
  */
 
+
+// Martha core files.
+require_once('../martha.php');
+
+$martha = new Martha();
+
+require('../views/suggestions.php');
+
 ?>
-<?php echo '<?xml version="1.0" encoding="UTF-8"?>'; // thwarting short php tags ?>
-<Response>
-	<?php foreach($messages as $index => $message): ?>
-    <Sms><?php echo htmlentities($message, ENT_NOQUOTES, 'UTF-8'); ?> (<?php echo $index + 1; ?>/<?php echo $total; ?>)</Sms>
-	<?php endforeach; ?>
-</Response>

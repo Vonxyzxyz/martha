@@ -89,35 +89,41 @@ define('TWILIO_CALLBACK_PASSWORD', 'XXXX-XXXX-XXXX-XXXX');
 
 /**
  * The name of your stored Bitly credential on Temboo. You can find/create this
- * in the "Credentials" sidebar at: https://live.temboo.com/library/Library/Bitly/Links/
+ * in the "Credentials" sidebar at: https://temboo.com/library/Library/Bitly/Links/
  */
 define('TEMBOO_BITLY_CREDENTIAL', '');
 
 
 /**
  * The name of your stored Flickr credential on Temboo. You can find/create this
- * in the "Credentials" sidebar at: https://live.temboo.com/library/Library/Flickr/Photos/
+ * in the "Credentials" sidebar at: https://temboo.com/library/Library/Flickr/Photos/
  */
 define('TEMBOO_FLICKR_CREDENTIAL', '');
 
 
 /**
  * The name of your stored Twitter credential on Temboo. You can find/create this
- * in the "Credentials" sidebar at: https://live.temboo.com/library/Library/Twitter/Search/
+ * in the "Credentials" sidebar at: https://temboo.com/library/Library/Twitter/Search/
  */
 define('TEMBOO_TWITTER_CREDENTIAL', '');
 
 
 /**
+ * The name of your stored Wordnik credential on Temboo. You can find/create this
+ * in the "Credentials" sidebar at: https://temboo.com/library/Library/Wordnik/Word/
+ */
+define('TEMBOO_WORDNIK_CREDENTIAL', '');
+
+/**
  * The name of your stored Dropbox credential on Temboo. You can find/create this
- * in the "Credentials" sidebar at: https://live.temboo.com/library/Library/Dropbox/
+ * in the "Credentials" sidebar at: https://temboo.com/library/Library/Dropbox/
  */
 define('TEMBOO_DROPBOX_CREDENTIAL', '');
 
 
 /**
  * The name of your stored Amazon S3 credential on Temboo. You can find/create this
- * in the "Credentials" sidebar at: https://live.temboo.com/library/Library/Amazon/S3/
+ * in the "Credentials" sidebar at: https://temboo.com/library/Library/Amazon/S3/
  */
 define('TEMBOO_S3_CREDENTIAL', '');
 

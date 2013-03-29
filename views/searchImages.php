@@ -29,6 +29,7 @@
  */
 
 ?>
+<?php if($this->_context != 'web'): ?>
 <!DOCTYPE html>
 <html lang="en-us">
     <head>
@@ -37,10 +38,15 @@
 		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 	</head>
 	<body>
+<?php endif; ?>
 		<?php foreach($items as $image): ?>
-				<a href="http://www.flickr.com/photos/<?php echo htmlentities($image->owner, ENT_COMPAT, 'UTF-8'); ?>/<?php echo htmlentities($image->id, ENT_COMPAT, 'UTF-8'); ?>">
-					<img src="<?php echo htmlentities($image->url_m, ENT_COMPAT, 'UTF-8') ?>" alt="<?php echo htmlentities($image->title, ENT_COMPAT, 'UTF-8'); ?>" title="<?php echo htmlentities($image->title, ENT_COMPAT, 'UTF-8'); ?>" />
+			<?php if(isset($image->url_s) && $image->url_s): ?>
+				<a href="http://www.flickr.com/photos/<?php echo htmlentities($image->owner, ENT_COMPAT, 'UTF-8'); ?>/<?php echo htmlentities($image->id, ENT_COMPAT, 'UTF-8'); ?>" target="_blank">
+					<img src="<?php echo htmlentities(str_replace('http://', 'https://', $image->url_s), ENT_COMPAT, 'UTF-8') ?>" title="<?php echo htmlentities($image->title, ENT_COMPAT, 'UTF-8'); ?>" />
 				</a>
+			<?php endif; ?>
 		<?php endforeach; ?>
+<?php if($this->_context != 'web'): ?>
 	</body>
 </html>
+<?php endif; ?>

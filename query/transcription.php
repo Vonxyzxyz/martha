@@ -41,7 +41,7 @@ if (!isset($_SERVER['PHP_AUTH_USER']) || $_SERVER['PHP_AUTH_USER'] != TWILIO_CAL
 // Martha core files.
 require_once('../martha.php');
 
-$martha = new Martha();
+$martha = new Martha('voice');
 
 // Input from Twilio callback
 $from = isset($_POST['From']) ? preg_replace('/[^a-zA-Z0-9]/', '', (string) $_POST['From']) : false;
