@@ -39,6 +39,9 @@ Our SDKs give you normalized access to 100+ APIs, databases, and more. Use Tembo
 
 Learn more, and get the Temboo SDK, at www.temboo.com. Or you can watch a [screencast of my recent presentation](http://temboo.tumblr.com/post/44816556635/scaling-api-access-why-automation-will-make) at the [API Strategy Conference](http://www.apistrategyconference.com).
 
+###Contact Information
+Have a question or see a bug? We'd love to hear from you at support@temboo.com.
+
 ###Copyright and License
 Copyright 2013, Temboo Inc.
 
