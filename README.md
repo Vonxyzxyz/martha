@@ -1,17 +1,22 @@
 ###About Martha
-[@edd](https://twitter.com/edd) challenged [@temboo](https://github.com/temboo) to "[write an open source Siri implementation](https://twitter.com/edd/status/297183175472476160)".
 
-Well, meet Martha! Using Temboo's [vast API library](https://live.temboo.com/library/) she can:
+Meet Martha, our trusty helper bot. You can ask her anything!
 
- * Take your requests via web, SMS, or voice with [Twilio](https://live.temboo.com/library/Library/Twilio/)
- * Find photos on [Flickr](https://live.temboo.com/library/Library/Flickr/)
- * Search for videos on [YouTube](https://live.temboo.com/library/Library/YouTube/)
- * Upload the results of her searches to [Dropbox](https://live.temboo.com/library/Library/Dropbox/) or [S3](https://live.temboo.com/library/Library/Amazon/S3/)
- * Shorten those URLs with [Bitly](https://live.temboo.com/library/Library/Bitly/), the better to txt them back to you with [Twilio](https://live.temboo.com/library/Library/Twilio/)
+Martha is powered by many of the APIs in the [Temboo Library](https://temboo.com/library/). Here's what she can do:
 
-And that's just what I got done this weekend. You can add more services to her really easily.
+ * Take your requests via web, SMS, or voice with [Twilio](https://temboo.com/library/Library/Twilio/)
+ * Find photos on [Flickr](https://temboo.com/library/Library/Flickr/)
+ * Search for videos on [YouTube](https://temboo.com/library/Library/YouTube/)
+ * Search for definitions on [Wordnik](https://temboo.com/library/Library/Wordnik/)
+ * Search for places via [Google Geocoding](https://temboo.com/library/Library/Google/Geocoding)
+ * Search for tweets on [Twitter](https://temboo.com/library/Library/Twitter)
+ * Find descriptions via [DuckDuckGo](https://temboo.com/library/Library/DuckDuckGo)
+ * Upload the results of her searches to [Dropbox](https://live.temboo.com/library/Library/Dropbox/) or [S3](https://live.temboo.com/library/Library/Amazon/S3/) (mobile only)
+ * Shorten those URLs with [Bitly](https://live.temboo.com/library/Library/Bitly/), the better to txt them back to you with [Twilio](https://live.temboo.com/library/Library/Twilio/) (mobile only)
 
-In fact, you can generate most of the code necessary live in the [Temboo library](https://live.temboo.com/library/), then paste it in. Browse through `martha.php` and you'll find library links above every method. If you follow those links you'll find code snippets that look awfully familiar.
+And that's just to get you started. You can add more services to her really easily.
+
+In fact, you can generate most of the code necessary live in the [Temboo library](https://temboo.com/library/), then paste it in. Browse through `martha.php` and you'll find library links above every method. If you follow those links you'll find code snippets that look very familiar.
 
 ###Quickstart
  1. Sign up for a free account at www.temboo.com
