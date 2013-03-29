@@ -30,7 +30,7 @@ Well, there's really not much to this but Temboo calls and some hairy regular ex
 
 Bare bones PHP because a good demo shouldn't involve much in the way of installation or deployment. Just upload Martha to any old web host. The majority of setup will just be the time it takes you to sign up for developer accounts with all those APIs.
 
-(And don't worry, we also have [SDKs](https://www.temboo.com/download) for Android, iOS, Java, Python, Ruby, and Node.js.)
+(And don't worry, we also have [SDKs](https://temboo.com/download) for Android, iOS, Java, Python, Ruby, and Node.js.)
 
 ###About Temboo
 The Temboo SDK provides normalized access to 100+ APIs, databases and more so you can spend less time wrestling with API specifics and more time building what matters to you.   
