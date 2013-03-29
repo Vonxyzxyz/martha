@@ -33,11 +33,9 @@ Bare bones PHP because a good demo shouldn't involve much in the way of installa
 (And don't worry, we also have [SDKs](https://www.temboo.com/download) for Android, iOS, Java, Python, Ruby, and Node.js.)
 
 ###About Temboo
-Temboo lets developers focus on what makes their software unique.
+The Temboo SDK provides normalized access to 100+ APIs, databases and more so you can spend less time wrestling with API specifics and more time building what matters to you.   
 
-Our SDKs give you normalized access to 100+ APIs, databases, and more. Use Temboo if you want to spend less time wrestling with data and more time building what matters to you.
-
-Learn more, and get the Temboo SDK, at www.temboo.com. Or you can watch a [screencast of my recent presentation](http://temboo.tumblr.com/post/44816556635/scaling-api-access-why-automation-will-make) at the [API Strategy Conference](http://www.apistrategyconference.com).
+Learn more, and get the Temboo SDK in your favorite language, at [temboo.com](https://temboo.com).
 
 ###Contact Information
 Have a question or see a bug? We'd love to hear from you at support@temboo.com.
