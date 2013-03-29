@@ -21,9 +21,9 @@ In fact, you can generate most of the code necessary live in the [Temboo library
 ###Quickstart
  1. Sign up for a free account at [temboo.com](http://temboo.com)
  2. Clone the repo: `git clone git@github.com:temboo/martha.git`
- 3. Download the [Temboo PHP SDK](https://temboo.com/download) into the `temboo-martha` directory
+ 3. Download the [Temboo PHP SDK](https://temboo.com/download) into the `martha` directory
  4. Copy `config.php.template` to `config.php` and edit with your Temboo credentials. Follow the links in this file to establish credentials for each API.
- 5. When creating a Twilio developer account, add a phone number with callbacks `temboo-martha/query/sms.php` and `temboo-martha/query/voice.php`. Be sure to include a username and password in the callback URLs matching the values you supplied in `config.php`.
+ 5. When creating a Twilio developer account, add a phone number with callbacks `martha/query/sms.php` and `martha/query/voice.php`. Be sure to include a username and password in the callback URLs matching the values you supplied in `config.php`.
 
 ###Why PHP? Why no framework?
 Well, there's really not much to this but Temboo calls and some hairy regular expressions. But that's the point! Martha is here to show off the awesome power of Temboo, not our Natural Language Processing expertise (which may or may not exist). That said, if you happen to be a bored NLP domain expert, pull requests welcome!
