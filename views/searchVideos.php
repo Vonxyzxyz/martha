@@ -23,7 +23,7 @@
  * @author     Nick Blanchard-Wright <nick.wright@temboo.com>
  * @copyright  2013 Temboo, Inc.
  * @license    http://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
- * @link       http://www.temboo.com
+ * @link       http://temboo.com
  * @package    Martha
  * @subpackage Views
  */
@@ -39,13 +39,21 @@
 	</head>
 	<body>
 <?php endif; ?>
-	<style>
+
+<style>
 
 .ytlinkcontainer {
     width: 120px;
     height: 110px;
     float: left;
     margin: 7px 33px 18px 0px;
+}
+
+/*Firefox specific spacing*/
+@-moz-document url-prefix() {
+	.ytlinkcontainer {
+  	  width: 115px;
+	}
 }
 
 .yttitle {
@@ -73,7 +81,7 @@
 }
 
 .ytlinkcontainer .info {
-	color: #777;
+	color: #333;
 	font-size: 10px;
 	width: 100px;
 }
@@ -96,47 +104,61 @@ font-size: 10px;
 text-align: right;
 padding: 0px 3px 1px;
 }
-	</style>
-		<?php foreach($items as $video): ?>
-			<?php if($video->content): ?>
 
+</style>
 
-<div class="ytlinkcontainer" ><a class="ytlink" href="http://www.youtube.com/watch/<?php echo htmlentities($video->{'media$group'}->{'yt$videoid'}->{'$t'}, ENT_COMPAT, 'UTF-8' ); ?>" data-embedsrc="https://www.youtube.com/embed/<?php echo htmlentities($video->{'media$group'}->{'yt$videoid'}->{'$t'}, ENT_COMPAT, 'UTF-8' ); ?>" target="_blank"><div class="ytthumb" style="background-image:url(<?php echo htmlentities($video->{'media$group'}->{'media$thumbnail'}[0]->{'url'}, ENT_COMPAT, 'UTF-8' ); ?>);"><div class="yttime"><?php echo durationString($video->{'media$group'}->{'yt$duration'}->seconds); ?></div></div></a><div class="yttitle"><?php echo htmlentities($video->title->{'$t'}, ENT_NOQUOTES, 'UTF-8')?></div><div class="info"><div class="ytviews"><?php echo isset($video->{'yt$statistics'}) ? $video->{'yt$statistics'}->viewCount : 'N/A'; ?></div><div class="ytage"><?php echo ageString($video->published->{'$t'}); ?></div></div></div>
-			<?php endif; ?>
-		<?php endforeach; ?>
-		<script>
+<?php foreach($items as $video): ?>
 
-			var elide = function(str, maxLength, location, indicator){
-				var indicator	= indicator || '...',
-					len			= str.length,
-					location	= location || 'end';
+    <div class="ytlinkcontainer" >
+        <a class="ytlink" href="http://<?php if($this->_context != 'web' || preg_match('/ipad|iphone|ipod|android/i', $_SERVER['HTTP_USER_AGENT'])) { echo "m"; } else { echo "www"; }?>.youtube.com/watch?v=<?php echo htmlentities($video->id, ENT_COMPAT, 'UTF-8' ); ?>" data-embedsrc="https://www.youtube.com/embed/<?php echo htmlentities($video->id, ENT_COMPAT, 'UTF-8' ); ?>" target="_blank">
+            <div class="ytthumb" style="background-image:url(<?php echo str_replace('http://', 'https://', htmlentities($video->snippet->thumbnails->default->url, ENT_COMPAT, 'UTF-8' )); ?>);">
+                <div class="yttime"><?php echo durationString($video->contentDetails->duration); ?></div>
+            </div>
+        </a>
+        <div class="yttitle"><?php echo htmlentities($video->snippet->title, ENT_NOQUOTES, 'UTF-8')?></div>
+        <div class="info">
+            <div class="ytviews"><?php echo isset($video->statistics->viewCount) ? $video->statistics->viewCount . ' views': 'N/A'; ?></div>
+            <div class="ytage"><?php echo ageString($video->snippet->publishedAt); ?></div>
+        </div>
+    </div>
 
-				if(len > maxLength){
-					var diff = len - maxLength + indicator.length;
-					// Remove/replace chars in requested portion
-					switch(location){
-						case 'start':
-							str = indicator + str.substr(diff);
-							break;
-						case 'middle':
-							var offset = Math.ceil((len - diff) / 2);
-							str	= str.substr(0, offset) + indicator + str.substr(offset + diff);
-							break;
-						case 'end':
-							str = str.substr(0, maxLength - indicator.length) + indicator;
-							break;
-					}
-				}
+<?php endforeach; ?>
 
-				return str;
-			}
+<script>
 
-			$(function(){
-				$('.yttitle').each(function(){
-					$(this).text(elide($(this).text(), 23, 'end'));
-				});
-			});
-		</script>
+var elide = function(str, maxLength, location, indicator){
+	var indicator	= indicator || '...',
+		len			= str.length,
+		location	= location || 'end';
+
+	if(len > maxLength){
+		var diff = len - maxLength + indicator.length;
+		// Remove/replace chars in requested portion
+		switch(location){
+			case 'start':
+				str = indicator + str.substr(diff);
+				break;
+			case 'middle':
+				var offset = Math.ceil((len - diff) / 2);
+				str	= str.substr(0, offset) + indicator + str.substr(offset + diff);
+				break;
+			case 'end':
+				str = str.substr(0, maxLength - indicator.length) + indicator;
+				break;
+		}
+	}
+
+	return str;
+}
+
+$(function(){
+	$('.yttitle').each(function(){
+		$(this).text(elide($(this).text(), 22, 'end'));
+	});
+});
+
+</script>
+
 <?php if($this->_context != 'web'): ?>
 	</body>
 </html>
@@ -177,18 +199,13 @@ function ageString($dateString) {
 }
 
 function durationString($duration) {
-    $hours = null;
-    $seconds = $duration % 60;
-    $minutes = floor($duration / 60);
-    if ($minutes > 60) {
-        $hours = floor($minutes / 60);
-        $minutes = $minutes % 60;
-    }
-    if (is_null($hours)) {
-        return (string) $minutes . ':' . sprintf('%02d', $seconds);
+    if(preg_match('/^PT((?P<hours>\d+)H)?((?P<minutes>\d+)M)?((?P<seconds>\d+)S)?$/', $duration, $matches)) {
+        $hours = isset($matches['hours']) && intval($matches['hours']) > 0 ?  sprintf('%02d', $matches['hours']) . ':' : '';
+        $minutes = isset($matches['minutes']) ?  sprintf('%02d', $matches['minutes']) : '00';
+        $seconds = isset($matches['seconds']) ?  sprintf('%02d', $matches['seconds']) : '00';
+        return $hours . $minutes . ':' . $seconds;
     } else {
-        return ((string) $hours . ':' . sprintf('%02d', $minutes) .
-                ':' . sprintf('%02d', $seconds));
+        return '00:00';
     }
 }
 

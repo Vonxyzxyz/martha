@@ -23,7 +23,7 @@
  * @author     Nick Blanchard-Wright <nick.wright@temboo.com>
  * @copyright  2013 Temboo, Inc.
  * @license    http://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
- * @link       http://www.temboo.com
+ * @link       http://temboo.com
  * @package    Martha
  * @subpackage Views
  */
@@ -32,7 +32,8 @@ header("Content-type: application/json");
 
 echo json_encode(
 	array(
-		'messages' => $martha->messages()
+		'messages' => $martha->messages(),
+		'tweet' => $martha->getTweet()
 	)
 );
 

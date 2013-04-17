@@ -23,7 +23,7 @@
  * @author     Nick Blanchard-Wright <nick.wright@temboo.com>
  * @copyright  2013 Temboo, Inc.
  * @license    http://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
- * @link       http://www.temboo.com
+ * @link       http://temboo.com
  * @package    Martha
  * @subpackage Views
  */
@@ -39,14 +39,17 @@
 	</head>
 	<body>
 <?php endif; ?>
-	<?php foreach($items as $status): ?>
-		<blockquote class="twitter-tweet">
-			<a href="https://twitter.com/<?php echo urlencode($status->user->screen_name); ?>/statuses/<?php echo urlencode($status->id); ?>">
-				<?php echo htmlentities($status->text, ENT_NOQUOTES, 'UTF-8'); ?>
-			</a>
-		</blockquote>
-	<?php endforeach; ?>
+
+<?php foreach($items as $status): ?>
+	<blockquote class="twitter-tweet">
+		<a href="https://twitter.com/<?php echo urlencode($status->user->screen_name); ?>/statuses/<?php echo urlencode($status->id); ?>">
+			<?php echo htmlentities($status->text, ENT_NOQUOTES, 'UTF-8'); ?>
+		</a>
+	</blockquote>
+<?php endforeach; ?>
+
 	<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+
 <?php if($this->_context != 'web'): ?>
 	</body>
 </html>

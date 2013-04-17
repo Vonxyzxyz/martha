@@ -21,7 +21,7 @@
  * @author     Nick Blanchard-Wright <nick.wright@temboo.com>
  * @copyright  2013 Temboo, Inc.
  * @license    http://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
- * @link       http://www.temboo.com
+ * @link       http://temboo.com
  * @package    Martha
  * @subpackage Assets
  */
@@ -54,10 +54,6 @@ a:hover {
 
 a:active {
 	color: #f47825;
-}
-
-#example-martha {
-	height: 370px !important;
 }
 
 .message {
@@ -99,7 +95,7 @@ a:active {
 }
 
 .powered-by img {
-	max-width: 130px;
+	max-width: 100%;
 	margin-top:5px;
 }
 
@@ -125,11 +121,8 @@ a:active {
 	top: 155px;
 	padding: 20px 20px 0 20px;
 	padding-top: 0;
+	padding-bottom:15px;
 	overflow-y: auto;
-}
-
-#martha-results .message:last-child p {
-	margin-bottom: 0;
 }
 
 #martha-results .message .ytlinkcontainer {
@@ -175,6 +168,17 @@ h1, #martha-query, .message.answer {
 	margin-top: 20px;
 }
 
+#martha-query.twitter-margin {
+	margin-right: 120px;
+}
+
+#martha-twitter-share {
+	position: absolute;
+	right: 0px;
+	bottom: -45px;
+	display: none;
+}
+
 #spinner {
 	position: absolute;
 	background: #fff url('spinner.gif') center center no-repeat;
@@ -185,7 +189,7 @@ h1, #martha-query, .message.answer {
 	display: none;
 }
 
-p.general-bucket {
+p.general-bucket, p.rpg {
 	text-align: center;
 }
 
@@ -194,7 +198,13 @@ p.general-bucket img {
 	max-width: 160px;
 }
 
+p.rpg img {
+	max-height: 130%;
+	max-width: 100%;
+}
+
 form {
+	position: relative;
 	padding-top: 20px;
 }
 
@@ -224,6 +234,25 @@ input[type=text]:focus {
 input[type=text]:focus::-webkit-input-placeholder { color:transparent; }
 input[type=text]:focus::-moz-placeholder { color:transparent; }
 
+
+#martha-submit {
+	position: relative;
+	z-index: 1;
+	background: url('button-submit-giant.png') left top no-repeat;
+	background-size: 26px;
+	width: 26px;
+	height: 26px;
+	border: none;
+	margin-left: 15px;
+	vertical-align: middle;
+	top: -2px;
+	display: none;
+}
+
+#martha-submit:disabled {
+	background-position: left -52px;
+}
+
 iframe.wikipedia {
 	background: #fff url('spinner.gif') center center no-repeat;
 	position: absolute;
@@ -249,14 +278,36 @@ and (max-device-width : 480px) {
 		max-width: 320px;
 	}
 	input[type=text] {
-		width: 260px;
+		width: 210px;
+		margin-left: 0;
+		margin-right: 0;
+		display: inline;
 	}
+
+	#martha-submit {
+		display: inline-block;
+	}
+
 	.message.answer {
 		max-width: 200px;
+		background: #fff url('martha-jr.png') -2px top no-repeat;
+		background-size: 40px 40px;
 	}
+
+	.message.answer:after {
+		background: url('martha-dot-jr.png') 1px top no-repeat;
+		background-size: 13px 13px;
+	}
+
 	#martha-welcome {
-		background: url('martha-mini.png') right top no-repeat;
-		padding-right: 50px;
+		background: url('martha-jr.png') left top no-repeat;
+		background-size: 40px 40px;
+		padding-right: 0px;
+	}
+
+	#martha-welcome h1 {
+		margin-left: 50px;
+		padding-top: 10px;
 	}
 
 	#martha-results {
@@ -268,6 +319,21 @@ and (max-device-width : 480px) {
 		padding: 5px;
 		margin-top: 70px;
 		overflow-y: auto;
+	}
+
+	.examples {
+		padding: 0;
+		border: none;
+	    font-size: 12px;
+	    width:auto;
+	}
+
+	.examples p {
+		position: relative;
+		background: none;
+		padding: 1px;
+		margin: 0;
+		min-height: 15px;
 	}
 
 	iframe.wikipedia {
@@ -285,6 +351,32 @@ and (max-device-width : 480px) {
 
 	iframe.googlemaps {
 		height: 175px;
+	}
+
 }
+
+/* Retina desktop browsers */
+@media
+only screen and (-webkit-min-device-pixel-ratio: 2) and (min-device-width: 1025px),
+only screen and (   min--moz-device-pixel-ratio: 2) and (min-device-width: 1025px),
+only screen and (   -o-min-device-pixel-ratio: 2/1) and (min-device-width: 1025px),
+only screen and (        min-device-pixel-ratio: 2) and (min-device-width: 1025px),
+only screen and (           min-resolution: 192dpi) and (min-device-width: 1025px),
+only screen and (            min-resolution: 2dppx) and (min-device-width: 1025px) {
+
+	.message.answer {
+		background: #fff url('martha-jr.png') -2px top no-repeat;
+		background-size: 40px 40px;
+	}
+
+	.message.answer:after {
+		background: url('martha-dot-jr.png') 1px top no-repeat;
+		background-size: 13px 13px;
+	}
+
+	.examples p {
+		background: url('martha-dot-jr.png') left 2px no-repeat;
+		background-size: 13px 13px;
+	}
 
 }

@@ -21,7 +21,7 @@
  * @author     Nick Blanchard-Wright <nick.wright@temboo.com>
  * @copyright  2013 Temboo, Inc.
  * @license    http://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
- * @link       http://www.temboo.com
+ * @link       http://temboo.com
  * @package    Martha
  * @subpackage Assets
  */
@@ -29,28 +29,41 @@
 $(function(){
 	var $form = $('#martha-form');
 	var $input = $('input[name=query]', $form);
+	var $submit = $('#martha-submit', $form);
 	var $query = $('#martha-query');
 	var $answer = $('#martha-answer');
 	var $results = $('#martha-results');
 	var $welcome = $('#martha-welcome');
 	var $spinner = $('#spinner');
+	var $twitterShare = $('#martha-twitter-share');
+	var latitude;
+	var longitude;
+	if (navigator.geolocation) {
+		navigator.geolocation.getCurrentPosition(function(position){
+			latitude = position.coords.latitude;
+			longitude = position.coords.longitude;
+		});
+    }
 	$input.placeholder();
 	$form.submit(function(e){
 		e.preventDefault();
 		$input.attr('placeholder', 'Need something else?');
 		$answer.hide().html('');
 		$results.hide().html('');
-		$spinner.fadeIn('fast');
 		$welcome.hide();
+		$twitterShare.hide();
+		$spinner.fadeIn('fast');
 		var query = $input.val();
 		$input.attr('disabled', true);
+		$submit.attr('disabled', true);
 		if( /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent) ) {
 			$input.blur();
 		}
-		$query.text('');
+		$query.removeClass('twitter-margin').text('');
 		if(query.length < 1) {
 			$.post('query/suggestions.php', {}, function(results){
 				$input.attr('disabled', false);
+				$submit.attr('disabled', false);
 				if(results.suggestions && results.suggestions.length) {
 					var $examples = $welcome.find('.examples').html('');
 					for(var i = 0, j = results.suggestions.length; i < j; i++) {
@@ -64,14 +77,22 @@ $(function(){
 			}, 'json');
 			return;
 		}
-		$.post($form.data('action'), { query: query }, function(results){
+		$.post($form.data('action'), { query: query, latitude: latitude, longitude: longitude }, function(results){
 			$input.val('').attr('disabled', false);
+			$submit.attr('disabled', false);
 			$('<div class="message answer"/>').html(results.messages[0]).appendTo($answer);
 			if(results.messages && results.messages.length) {
 				for(var i = 1, j = results.messages.length; i < j; i++) {
 					var message = results.messages[i];
 					$('<div class="message"/>').html(message).appendTo($results);
 				}
+			}
+			if(results.tweet) {
+				$('iframe', $twitterShare).remove();
+				$twitterShare.append('<a href="https://twitter.com/share" class="twitter-share-button" data-url="https://temboo.com/examples" data-text="' + results.tweet + '" data-align="right">Tweet</a>');
+				twttr.widgets.load();
+				$query.addClass('twitter-margin');
+				$twitterShare.show();
 			}
 			$spinner.fadeOut('fast', function(){
 				$query.text(query);
@@ -83,7 +104,11 @@ $(function(){
 
 	$(document).on('click', 'a.suggestion', function(e){
 		e.preventDefault();
-		$input.val($(this).text().replace(/\"/g, ''));
+		var suggestion = $(this).data('suggestion');
+		if(!suggestion) {
+			suggestion = $(this).text().replace(/\"/g, '');
+		}
+		$input.val(suggestion);
 		$form.submit();
 	});
 });

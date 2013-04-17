@@ -23,22 +23,23 @@
  * @author     Nick Blanchard-Wright <nick.wright@temboo.com>
  * @copyright  2013 Temboo, Inc.
  * @license    http://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
- * @link       http://www.temboo.com
+ * @link       http://temboo.com
  * @package    Martha
  * @subpackage Controllers
  */
 
-
 // Martha core files.
 require_once('../martha.php');
 
-$martha = new Martha();
-
 // Input from web form.
 $query = isset($_POST['query']) ? (string) $_POST['query'] : '';
+$latitude = isset($_POST['latitude']) ? (float) $_POST['latitude'] : null;
+$longitude = isset($_POST['longitude']) ? (float) $_POST['longitude'] : null;
 if(get_magic_quotes_gpc()) {
 	$query = stripslashes($query);
 }
+
+$martha = new Martha('web', $latitude, $longitude);
 
 $martha->query($query);
 

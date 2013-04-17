@@ -23,7 +23,7 @@
  * @author     Nick Blanchard-Wright <nick.wright@temboo.com>
  * @copyright  2013 Temboo, Inc.
  * @license    http://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
- * @link       http://www.temboo.com
+ * @link       http://temboo.com
  * @package    Martha
  * @subpackage Views
  */
@@ -39,13 +39,15 @@
 	</head>
 	<body>
 <?php endif; ?>
-		<?php foreach($items as $image): ?>
-			<?php if(isset($image->url_s) && $image->url_s): ?>
-				<a href="http://www.flickr.com/photos/<?php echo htmlentities($image->owner, ENT_COMPAT, 'UTF-8'); ?>/<?php echo htmlentities($image->id, ENT_COMPAT, 'UTF-8'); ?>" target="_blank">
-					<img src="<?php echo htmlentities(str_replace('http://', 'https://', $image->url_s), ENT_COMPAT, 'UTF-8') ?>" title="<?php echo htmlentities($image->title, ENT_COMPAT, 'UTF-8'); ?>" />
-				</a>
-			<?php endif; ?>
-		<?php endforeach; ?>
+
+<?php foreach($items as $image): ?>
+	<?php if(isset($image->url_s) && $image->url_s): ?>
+		<a href="http://www.flickr.com/photos/<?php echo htmlentities($image->owner, ENT_COMPAT, 'UTF-8'); ?>/<?php echo htmlentities($image->id, ENT_COMPAT, 'UTF-8'); ?>" target="_blank">
+			<img src="<?php echo htmlentities(str_replace('http://', 'https://', $image->url_s), ENT_COMPAT, 'UTF-8') ?>" title="<?php echo htmlentities($image->title, ENT_COMPAT, 'UTF-8'); ?>" />
+		</a>
+	<?php endif; ?>
+<?php endforeach; ?>
+
 <?php if($this->_context != 'web'): ?>
 	</body>
 </html>

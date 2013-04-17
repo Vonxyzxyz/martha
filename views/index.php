@@ -23,7 +23,7 @@
  * @author     Nick Blanchard-Wright <nick.wright@temboo.com>
  * @copyright  2013 Temboo, Inc.
  * @license    http://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
- * @link       http://www.temboo.com
+ * @link       http://temboo.com
  * @package    Martha
  * @subpackage Views
  */
@@ -46,10 +46,22 @@
 	</head>
 	<body>
 		<form id="martha-form" action="" data-action="query/ajax.php" method="POST">
-			<input type="text" name="query" autocomplete="off" placeholder="What do you want?" />
+			<input type="text" name="query" autocomplete="off" placeholder="What do you want?" autofocus />
+			<button type="submit" id="martha-submit"></button>
+			<?php $tweet = $martha->getTweet(); ?>
+			<?php if($tweet): ?>
+				<div id="martha-twitter-share" style="display: block">
+					<a href="https://twitter.com/share" class="twitter-share-button" data-url="https://temboo.com/examples" data-text="<?php echo htmlentities($tweet, ENT_COMPAT, 'UTF-8') ?>" data-align="right">Tweet</a>
+					<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+				</div>
+			<?php else: ?>
+				<div id="martha-twitter-share">
+					<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+				</div>
+			<?php endif; ?>
 		</form>
 		<?php if(isset($query) && strlen($query) > 0): ?>
-			<div id="martha-query"><?php echo htmlentities($query, ENT_NOQUOTES, 'UTF-8'); ?></div>
+			<div id="martha-query"<?php if($tweet): ?> class="twitter-margin"<?php endif; ?>><?php echo htmlentities($query, ENT_NOQUOTES, 'UTF-8'); ?></div>
 			<div id="martha-answer">
 				<?php $messages = $martha->messages(); $message = array_shift($messages); ?>
 				<div class="message answer"><?php echo $message; ?></div>
@@ -60,7 +72,7 @@
 				<?php endforeach; ?>
 			</div>
 		<?php else: ?>
-			<div id="martha-query"></div>
+			<div id="martha-query"<?php if($tweet): ?> class="twitter-margin"<?php endif; ?>></div>
 			<div id="martha-answer" style="display: none"></div>
 			<div id="martha-results" style="display: none"></div>
 		<?php endif; ?>
@@ -69,9 +81,9 @@
 			<p>I can help you answer questions and find things.</p>
 			<p>Try asking me some stuff like this:</p>
 			<div class="examples">
-				<p><a href="?query=Show me 5 videos of quadrocopters." class="suggestion">"Show me 5 videos of quadrocopters."</a></p>
-				<p><a href="?query=Where is the world's largest ball of twine?" class="suggestion">"Where is the world's largest ball of twine?"</a></p>
-				<p><a href="?query=Who is Tim Berners-Lee?" class="suggestion">"Who is Tim Berners-Lee?"</a></p>
+				<?php foreach($martha->suggest(3) as $suggestion): ?>
+					<p><a href="?query=<?php echo htmlspecialchars($suggestion, ENT_COMPAT, 'UTF-8'); ?>" class="suggestion">"<?php echo htmlspecialchars($suggestion, ENT_NOQUOTES, 'UTF-8'); ?>"</a></p>
+				<?php endforeach; ?>
 			</div>
 			<p>Or type <a href="?query=help" class="suggestion">"help"</a> for more assistance.</p>
 		</div>

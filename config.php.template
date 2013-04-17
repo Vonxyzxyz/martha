@@ -23,7 +23,7 @@
  * @author     Nick Blanchard-Wright <nick.wright@temboo.com>
  * @copyright  2013 Temboo, Inc.
  * @license    http://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
- * @link       http://www.temboo.com
+ * @link       http://temboo.com
  * @package    Martha
  * @subpackage Config
  */
@@ -37,20 +37,20 @@ define('TEMBOO_ACCOUNT', 'IForgotToSignUp');
 
 
 /**
- * Your Temboo Application name. You can get this from https://live.temboo.com/account/
+ * Your Temboo Application name. You can get this from https://temboo.com/account/
  */
 define('TEMBOO_APP_NAME', 'myFirstApp');
 
 
 /**
- * Your Temboo Application key. You can get this from https://live.temboo.com/account/
+ * Your Temboo Application key. You can get this from https://temboo.com/account/
  */
 define('TEMBOO_APP_KEY', 'XXXX-XXXX-XXXX-XXXX');
 
 
 /**
  * The name of your stored Twilio credential on Temboo. You can find/create this
- * in the "Credentials" sidebar at: https://live.temboo.com/library/Library/Twilio/
+ * in the "Credentials" sidebar at: https://temboo.com/library/Library/Twilio/
  */
 define('TEMBOO_TWILIO_CREDENTIAL', 'MyTwilioCredentialName');
 
@@ -95,6 +95,13 @@ define('TEMBOO_BITLY_CREDENTIAL', '');
 
 
 /**
+ * The name of your stored DonorsChoose.org credential on Temboo. You can find/create this
+ * in the "Credentials" sidebar at: https://temboo.com/library/Library/DonorsChoose/
+ */
+define('TEMBOO_DONORSCHOOSE_CREDENTIAL', '');
+
+
+/**
  * The name of your stored Flickr credential on Temboo. You can find/create this
  * in the "Credentials" sidebar at: https://temboo.com/library/Library/Flickr/Photos/
  */
@@ -113,6 +120,14 @@ define('TEMBOO_TWITTER_CREDENTIAL', '');
  * in the "Credentials" sidebar at: https://temboo.com/library/Library/Wordnik/Word/
  */
 define('TEMBOO_WORDNIK_CREDENTIAL', '');
+
+
+/**
+ * The name of your stored YouTube credential on Temboo. You can find/create this
+ * in the "Credentials" sidebar at: https://temboo.com/library/Library/YouTube/Search/
+ */
+define('TEMBOO_YOUTUBE_CREDENTIAL', '');
+
 
 /**
  * The name of your stored Dropbox credential on Temboo. You can find/create this

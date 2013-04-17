@@ -23,7 +23,7 @@
  * @author     Nick Blanchard-Wright <nick.wright@temboo.com>
  * @copyright  2013 Temboo, Inc.
  * @license    http://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
- * @link       http://www.temboo.com
+ * @link       http://temboo.com
  * @package    Martha
  * @subpackage Views
  */
@@ -39,6 +39,7 @@
 	</head>
 	<body>
 <?php endif; ?>
+
 <iframe class="googlemaps" width="100%" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="https://maps.google.com/maps?f=q&source=s_q&hl=en&geocode=&q=<?php echo urlencode($location->result->formatted_address) ?>&ie=UTF8&z=12&t=m&iwloc=near&output=embed"></iframe><br /><small><a href="http://maps.google.com/maps?f=q&source=s_q&hl=en&geocode=&q=<?php echo urlencode($location->result->formatted_address) ?>&ie=UTF8&z=12&t=m&iwloc=near" target="_blank">View Larger Map</a></small>
 
 <?php if($this->_context != 'web'): ?>
